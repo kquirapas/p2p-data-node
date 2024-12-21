@@ -1,0 +1,5 @@
+/target
+.editorconfg
+.env.local
+.env
+.DS_Store
