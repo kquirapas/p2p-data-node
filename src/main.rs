@@ -4,8 +4,16 @@ use anyhow::Result;
 use behavior::Behaviour;
 use futures::prelude::*;
 use libp2p::{
-    identify, identity::Keypair, kad, ping, swarm::SwarmEvent, Multiaddr, PeerId, StreamProtocol,
+    gossipsub::{Behaviour as GossipsubBehavior, Event as GossipsubEvent},
+    identify::{Behaviour as IdentifyBehaviour, Event as IdentifyEvent},
+    kad::{
+        store::MemoryStore as KadInMemory, Behaviour as KadBehaviour, Event as KadEvent,
+        RoutingUpdate,
+    },
+    swarm::{behaviour, NetworkBehaviour},
+    Multiaddr, PeerId,
 };
+use libp2p::{identify, identity::Keypair, kad, ping, swarm::SwarmEvent, StreamProtocol};
 use std::{thread, time::Duration};
 
 const ID_PROTOCOL_STRING: &str = "/sonic/connection/0.1.0";
@@ -59,6 +67,10 @@ async fn main() -> Result<()> {
     loop {
         match swarm.select_next_some().await {
             SwarmEvent::NewListenAddr { address, .. } => println!("Listening on {address:?}"),
+            SwarmEvent::Behaviour(event) => {
+                println!("Behaviour! {event:?}");
+            }
+
             _ => {}
         }
     }
