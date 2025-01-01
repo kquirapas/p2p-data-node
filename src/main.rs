@@ -1,19 +1,22 @@
 mod behavior;
+mod config;
 
-use anyhow::Result;
-use behavior::Behaviour;
+use anyhow::{bail, Result};
+use behavior::{Behaviour as NodeBehaviour, Event as NodeEvent};
 use futures::prelude::*;
 use libp2p::{
-    gossipsub::{Behaviour as GossipsubBehavior, Event as GossipsubEvent},
-    identify::{Behaviour as IdentifyBehaviour, Event as IdentifyEvent},
+    gossipsub::{
+        self, Behaviour as GossipsubBehavior, Event as GossipsubEvent, MessageAuthenticity,
+    },
+    identify::{self, Behaviour as IdentifyBehaviour, Event as IdentifyEvent},
     kad::{
-        store::MemoryStore as KadInMemory, Behaviour as KadBehaviour, Event as KadEvent,
+        self, store::MemoryStore as KadInMemory, Behaviour as KadBehaviour, Event as KadEvent,
         RoutingUpdate,
     },
     swarm::{behaviour, NetworkBehaviour},
     Multiaddr, PeerId,
 };
-use libp2p::{identify, identity::Keypair, kad, ping, swarm::SwarmEvent, StreamProtocol};
+use libp2p::{identity::Keypair, ping, swarm::SwarmEvent, StreamProtocol};
 use std::{thread, time::Duration};
 
 const ID_PROTOCOL_STRING: &str = "/sonic/connection/0.1.0";
@@ -24,9 +27,24 @@ async fn main() -> Result<()> {
     // let ping_config = ping::Config::default()
     //     .with_timeout(Duration::from_secs(5))
     //     .with_interval(Duration::from_secs(1));
-    //
 
     let keypair = Keypair::generate_ed25519();
+    let local_peer_id = PeerId::from_public_key(&keypair.public());
+
+    let gossipsub_msg_auth = MessageAuthenticity::Signed(keypair.clone());
+    let gossipsub_config = gossipsub::ConfigBuilder::default().build()?;
+    let result_gossipsub = GossipsubBehavior::new(gossipsub_msg_auth, gossipsub_config);
+    let gossipsub = match result_gossipsub {
+        Ok(g) => g,
+        Err(e) => bail!(e),
+    };
+
+    let identify_config = identify::Config::new(ID_PROTOCOL_STRING.to_string(), keypair.public());
+    let identify = IdentifyBehaviour::new(identify_config);
+
+    let kad_config = kad::Config::new(StreamProtocol::new(KAD_PROTOCOL_STRING));
+    let kad_store = kad::store::MemoryStore::new(local_peer_id);
+    let kad = KadBehaviour::new(local_peer_id, kad_store);
 
     let mut swarm = libp2p::SwarmBuilder::with_existing_identity(keypair.clone())
         .with_tokio()
@@ -35,18 +53,7 @@ async fn main() -> Result<()> {
             libp2p::tls::Config::new,
             libp2p::yamux::Config::default,
         )?
-        .with_behaviour(|key| {
-            let local_peer_id = PeerId::from_public_key(&keypair.public());
-            let identify_config =
-                identify::Config::new(ID_PROTOCOL_STRING.to_string(), keypair.public());
-            let identify = identify::Behaviour::new(identify_config);
-
-            let kad_config = kad::Config::new(StreamProtocol::new(KAD_PROTOCOL_STRING));
-            let kad_store = kad::store::MemoryStore::new(local_peer_id);
-            let kad = kad::Behaviour::new(local_peer_id, kad_store);
-
-            Behaviour::new(identify, kad)
-        })?
+        .with_behaviour(|key| NodeBehaviour::new(gossipsub, identify, kad))?
         .with_swarm_config(|cfg| cfg.with_idle_connection_timeout(Duration::from_secs(u64::MAX))) // Allows us to observe pings indefinitely.
         .build();
 
@@ -67,7 +74,21 @@ async fn main() -> Result<()> {
     loop {
         match swarm.select_next_some().await {
             SwarmEvent::NewListenAddr { address, .. } => println!("Listening on {address:?}"),
-            SwarmEvent::Behaviour(event) => {}
+            SwarmEvent::Behaviour(event) => match event {
+                NodeEvent::Identify(IdentifyEvent::Received {
+                    connection_id,
+                    peer_id,
+                    info,
+                }) => {
+                    swarm
+                        .behaviour_mut()
+                        .add_address(&peer_id, info.listen_addrs[0].clone());
+                }
+
+                _ => {
+                    println!("{event:?}");
+                }
+            },
 
             _ => {}
         }

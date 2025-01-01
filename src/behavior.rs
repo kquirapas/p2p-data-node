@@ -12,19 +12,19 @@ use libp2p::{
 #[derive(NetworkBehaviour)]
 #[behaviour(to_swarm = "Event")]
 pub(crate) struct Behaviour {
-    // gossipsub: GossipsubBehavior,
+    gossipsub: GossipsubBehavior,
     identify: IdentifyBehaviour,
     kad: KadBehaviour<KadInMemory>,
 }
 
 impl Behaviour {
     pub fn new(
-        // gossipsub: GossipsubBehavior,
+        gossipsub: GossipsubBehavior,
         identify: IdentifyBehaviour,
         kad: KadBehaviour<KadInMemory>,
     ) -> Self {
         Self {
-            // gossipsub,
+            gossipsub,
             identify,
             kad,
         }
@@ -37,16 +37,16 @@ impl Behaviour {
 
 #[derive(Debug)]
 pub(crate) enum Event {
-    // Gossipsub(GossipsubEvent),
+    Gossipsub(GossipsubEvent),
     Identify(IdentifyEvent),
     Kad(KadEvent),
 }
 
-// impl From<GossipsubEvent> for Event {
-//     fn from(value: GossipsubEvent) -> Self {
-//         Self::Gossipsub(value)
-//     }
-// }
+impl From<GossipsubEvent> for Event {
+    fn from(value: GossipsubEvent) -> Self {
+        Self::Gossipsub(value)
+    }
+}
 
 impl From<IdentifyEvent> for Event {
     fn from(value: IdentifyEvent) -> Self {
