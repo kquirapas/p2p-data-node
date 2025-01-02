@@ -2,7 +2,7 @@ mod behavior;
 mod config;
 
 use anyhow::{bail, Result};
-use behavior::{Behaviour as NodeBehaviour, Event as NodeEvent};
+use behavior::{Node as NodeBehaviour, NodeEvent};
 use futures::prelude::*;
 use libp2p::{
     gossipsub::{

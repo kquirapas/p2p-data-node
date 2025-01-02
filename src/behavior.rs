@@ -10,14 +10,14 @@ use libp2p::{
 };
 
 #[derive(NetworkBehaviour)]
-#[behaviour(to_swarm = "Event")]
-pub(crate) struct Behaviour {
+// #[behaviour(to_swarm = "Event")]
+pub(crate) struct Node {
     gossipsub: GossipsubBehavior,
     identify: IdentifyBehaviour,
     kad: KadBehaviour<KadInMemory>,
 }
 
-impl Behaviour {
+impl Node {
     pub fn new(
         gossipsub: GossipsubBehavior,
         identify: IdentifyBehaviour,
@@ -35,27 +35,27 @@ impl Behaviour {
     }
 }
 
-#[derive(Debug)]
-pub(crate) enum Event {
-    Gossipsub(GossipsubEvent),
-    Identify(IdentifyEvent),
-    Kad(KadEvent),
-}
-
-impl From<GossipsubEvent> for Event {
-    fn from(value: GossipsubEvent) -> Self {
-        Self::Gossipsub(value)
-    }
-}
-
-impl From<IdentifyEvent> for Event {
-    fn from(value: IdentifyEvent) -> Self {
-        Self::Identify(value)
-    }
-}
-
-impl From<KadEvent> for Event {
-    fn from(value: KadEvent) -> Self {
-        Self::Kad(value)
-    }
-}
+// #[derive(Debug)]
+// pub(crate) enum Event {
+//     Gossipsub(GossipsubEvent),
+//     Identify(IdentifyEvent),
+//     Kad(KadEvent),
+// }
+//
+// impl From<GossipsubEvent> for Event {
+//     fn from(value: GossipsubEvent) -> Self {
+//         Self::Gossipsub(value)
+//     }
+// }
+//
+// impl From<IdentifyEvent> for Event {
+//     fn from(value: IdentifyEvent) -> Self {
+//         Self::Identify(value)
+//     }
+// }
+//
+// impl From<KadEvent> for Event {
+//     fn from(value: KadEvent) -> Self {
+//         Self::Kad(value)
+//     }
+// }
