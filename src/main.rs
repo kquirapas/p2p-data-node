@@ -19,6 +19,8 @@ use libp2p::{
 use libp2p::{identity::Keypair, ping, swarm::SwarmEvent, StreamProtocol};
 use std::{thread, time::Duration};
 
+// const BOOTNODES: &str = [];
+
 const ID_PROTOCOL_STRING: &str = "/sonic/connection/0.1.0";
 const KAD_PROTOCOL_STRING: &str = "/sonic/discovery/0.1.0";
 
