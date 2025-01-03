@@ -2,6 +2,7 @@ mod behavior;
 mod config;
 
 use anyhow::{bail, Result};
+use behavior::{Node as NodeBehaviour, NodeEvent};
 use clap::{Arg, ArgAction, Command};
 use libp2p::identity::Keypair;
 use std::{fs, marker::PhantomData};

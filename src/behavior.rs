@@ -34,28 +34,3 @@ impl Node {
         self.kad.add_address(peer_id, addr)
     }
 }
-
-// #[derive(Debug)]
-// pub(crate) enum Event {
-//     Gossipsub(GossipsubEvent),
-//     Identify(IdentifyEvent),
-//     Kad(KadEvent),
-// }
-//
-// impl From<GossipsubEvent> for Event {
-//     fn from(value: GossipsubEvent) -> Self {
-//         Self::Gossipsub(value)
-//     }
-// }
-//
-// impl From<IdentifyEvent> for Event {
-//     fn from(value: IdentifyEvent) -> Self {
-//         Self::Identify(value)
-//     }
-// }
-//
-// impl From<KadEvent> for Event {
-//     fn from(value: KadEvent) -> Self {
-//         Self::Kad(value)
-//     }
-// }
