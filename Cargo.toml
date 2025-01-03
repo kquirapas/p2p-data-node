@@ -3,10 +3,16 @@ name = "p2p-data-node"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "dn"
+path = "src/main.rs"
+
 [dependencies]
 anyhow = "1.0.94"
+clap = "4.5.23"
 dotenvy = "0.15.7"
 futures = "0.3.31"
-libp2p = { version = "0.54.1", features = ["ping", "tls", "tcp", "yamux", "tokio", "noise", "kad", "gossipsub", "identify", "macros"] }
+lazy_static = "1.5.0"
+libp2p = { version = "0.54.1", features = ["ping", "tls", "tcp", "yamux", "tokio", "noise", "kad", "gossipsub", "identify", "macros", "rsa"] }
 thiserror = "2.0.8"
 tokio = { version = "1.42.0", features = ["full"] }
